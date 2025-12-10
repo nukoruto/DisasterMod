@@ -1,7 +1,7 @@
 package com.example.disastermod;
 
 import net.fabricmc.api.ClientModInitializer;
-// ▼ 以下の2行のインポートを追加（これでエラーが消えます）
+// ▼ この2行が足りていなかったためエラーになっていました
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.client.render.entity.FlyingItemEntityRenderer;
 
