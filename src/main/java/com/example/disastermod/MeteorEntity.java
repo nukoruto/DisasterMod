@@ -22,12 +22,12 @@ public class MeteorEntity extends ThrownItemEntity {
         this.disasterLevel = level;
     }
 
+    // スポーン用のコンストラクタ
     public MeteorEntity(World world, double x, double y, double z, int level) {
         super(DisasterMod.METEOR_ENTITY_TYPE, x, y, z, world);
         this.disasterLevel = level;
     }
 
-    // レベルを設定するメソッド
     public void setLevel(int level) {
         this.disasterLevel = level;
     }
@@ -42,30 +42,24 @@ public class MeteorEntity extends ThrownItemEntity {
     protected void onCollision(HitResult hitResult) {
         super.onCollision(hitResult);
 
-        // サーバー側でのみ処理（爆発などはサーバー主導）
+        // サーバー側でのみ処理
         if (!this.getWorld().isClient) {
             // 1. 直撃ダメージ処理
             if (hitResult.getType() == HitResult.Type.ENTITY) {
                 EntityHitResult entityHit = (EntityHitResult) hitResult;
-                // 仕様: レベル × 15 の固定ダメージ
+                // ダメージ: レベル × 15
                 float directDamage = this.disasterLevel * 15.0f;
-                // ダメージを与える (ダメージソース: thrown)
                 entityHit.getEntity().damage(this.getDamageSources().thrown(this, this.getOwner()), directDamage);
             }
 
-            // 2. 爆発規模の計算 (べき乗関数)
-            // 仕様: レベルの2乗で強くなる
-            // Lv1 = 4.0 (TNT1個分)
-            // Lv2 = 4.0 * 4 = 16.0 (TNT数個分)
-            // Lv3 = 4.0 * 9 = 36.0 (超巨大)
-            // Lv5 = 4.0 * 25 = 100.0 (核兵器級)
+            // 2. 爆発規模の計算 (べき乗関数: レベルの2乗 * 4.0)
+            // Lv1=4.0, Lv2=16.0, Lv3=36.0...
             float explosionPower = 4.0f * (float) Math.pow(this.disasterLevel, 2);
 
-            // 3. 爆発を起こす
-            // ExplosionSourceType.TNT にすることで、ブロック破壊が発生し、かつ黒曜石などは壊れない(爆発耐性参照)
+            // 3. 爆発を起こす (TNTタイプなのでブロック破壊あり)
             this.getWorld().createExplosion(this, this.getX(), this.getY(), this.getZ(), explosionPower, World.ExplosionSourceType.TNT);
 
-            // 役目を終えたら消滅
+            // 消滅
             this.discard();
         }
     }

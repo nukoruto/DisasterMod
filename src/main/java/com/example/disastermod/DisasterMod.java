@@ -22,13 +22,13 @@ public class DisasterMod implements ModInitializer {
 
     public static final Logger LOGGER = LoggerFactory.getLogger("disastermod");
 
-    // ▼ 隕石エンティティの登録用変数
+    // ▼ 隕石エンティティの登録
     public static final EntityType<MeteorEntity> METEOR_ENTITY_TYPE = Registry.register(
             Registries.ENTITY_TYPE,
             new Identifier("disastermod", "meteor"),
             FabricEntityTypeBuilder.<MeteorEntity>create(SpawnGroup.MISC, MeteorEntity::new)
                     .dimensions(EntityDimensions.fixed(1.0f, 1.0f)) // サイズ 1x1
-                    .trackRangeBlocks(128).trackedUpdateRate(10) // 遠くでも見えるように
+                    .trackRangeBlocks(128).trackedUpdateRate(10)
                     .build()
     );
 

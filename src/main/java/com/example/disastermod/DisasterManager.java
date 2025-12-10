@@ -28,25 +28,20 @@ public class DisasterManager {
         }
     }
 
-    // 予約リストの処理
     private static void handlePendingDisasters(MinecraftServer server) {
         Iterator<ScheduledDisaster> iterator = pendingDisasters.iterator();
 
         while (iterator.hasNext()) {
             ScheduledDisaster disaster = iterator.next();
-
-            // カウントダウン
             disaster.ticksUntilStart--;
 
-            // 残り時間が0になったら発生！
             if (disaster.ticksUntilStart <= 0) {
                 executeDisaster(disaster, server);
-                iterator.remove(); // リストから削除
+                iterator.remove();
             }
         }
     }
 
-    // 実際に災害を起こすメソッド
     private static void executeDisaster(ScheduledDisaster disaster, MinecraftServer server) {
         String msg = String.format("【災害発生】タイプ:%s レベル:%d 座標:X%d, Y%d, Z%d",
                 disaster.type, disaster.level,
@@ -54,7 +49,7 @@ public class DisasterManager {
 
         server.getPlayerManager().broadcast(Text.literal(msg).formatted(Formatting.RED, Formatting.BOLD), false);
 
-        // ▼ 災害ごとの分岐処理
+        // ▼ 隕石の場合の処理呼び出し
         if (disaster.type == DisasterType.METEOR) {
             spawnMeteor(disaster);
         }
@@ -62,43 +57,38 @@ public class DisasterManager {
 
     // 隕石スポーン処理
     private static void spawnMeteor(ScheduledDisaster disaster) {
-        // 1. スポーン位置の計算（ターゲットの真上 100ブロック）
-        double x = disaster.targetPos.getX() + 0.5; // ブロックの中心
-        double y = disaster.targetPos.getY() + 100; // 上空
+        // 1. スポーン位置（ターゲットの真上 100ブロック）
+        double x = disaster.targetPos.getX() + 0.5;
+        double y = disaster.targetPos.getY() + 100;
         double z = disaster.targetPos.getZ() + 0.5;
 
-        // 2. 音を鳴らす（中心座標から発する）
-        // SoundCategory.HOSTILE, 音量10.0(広範囲), ピッチ0.5(低音)
-        // 仮の音として「ウィザーのスポーン音」を使用
+        // 2. 警告音（ウィザーのスポーン音）
         disaster.targetPlayer.getWorld().playSound(
                 null,
                 disaster.targetPos,
-                net.minecraft.sound.SoundEvents.ENTITY_WITHER_SPAWN, // 降る直前の警告音
+                net.minecraft.sound.SoundEvents.ENTITY_WITHER_SPAWN,
                 net.minecraft.sound.SoundCategory.HOSTILE,
                 10.0f,
                 0.5f
         );
 
-        // 3. 隕石エンティティを生成してワールドに追加
+        // 3. 隕石生成
         MeteorEntity meteor = new MeteorEntity(disaster.targetPlayer.getWorld(), x, y, z, disaster.level);
 
-        // 真下に加速させる (Velocity)
-        meteor.setVelocity(0, -3.0, 0); // かなり速く落とす
+        // 真下に加速
+        meteor.setVelocity(0, -3.0, 0);
 
         disaster.targetPlayer.getWorld().spawnEntity(meteor);
     }
 
-    // ランダム発生のチェック（1秒に1回）
     private static void checkRandomSpawning(MinecraftServer server) {
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-            // 地域難易度を取得
             float localDiff = player.getWorld().getLocalDifficulty(player.getBlockPos()).getLocalDifficulty();
-
+            // TODO: ここに確率計算を入れる
             if (localDiff > 100) { }
         }
     }
 
-    // コマンド等から災害を予約するメソッド
     public static void scheduleDisaster(DisasterType type, int level, ServerPlayerEntity player) {
         ScheduledDisaster disaster = new ScheduledDisaster(type, level, player);
         pendingDisasters.add(disaster);
